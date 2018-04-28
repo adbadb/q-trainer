@@ -1,37 +1,110 @@
-# Q-Trader
+# Q-Trader analysis
 
-An implementation of Q-learning applied to (short-term) stock trading. The model uses n-day windows of closing prices to determine if the best action to take at a given time is to buy, sell or sit.
+An implementation of Q-learning starting upon [Edward Lu's repository](https://github.com/edwardhdlu/q-trader).
 
-As a result of the short-term state representation, the model is not very good at making decisions over long-term trends, but is quite good at predicting peaks and troughs.
+The main purpose of this repository is not to directly build a trading bot model, but split out some parts of the provess and being able to systematize the analysis and comparison of multiple models, datasets and hyperparameters.
 
-## Results
+The final outcome of the training can be used to perform actual trading processes, in any case use it at your own responsibility, as the outcome of this model is by no mean a trading advice whatsoever.
 
-Some examples of results on test sets:
+## Installation
 
-![^GSPC 2015](https://github.com/edwardhdlu/q-trader/blob/master/images/^GSPC_2015.png)
-S&P 500, 2015. Profit of $431.04.
+The Trading bot requires Python 3 and relies on Keras + Tensorflow as a Deep Learning backend. It also it requires to have installed the C++ TA-Lib in case that pip doesn't install it already.
 
-![BABA_2015](https://github.com/edwardhdlu/q-trader/blob/master/images/BABA_2015.png)
-Alibaba Group Holding Ltd, 2015. Loss of $351.59.
+In order to install it, clone that repository and create a virtual environment:
 
-![AAPL 2016](https://github.com/edwardhdlu/q-trader/blob/master/images/AAPL_2016.png)
-Apple, Inc, 2016. Profit of $162.73.
+```
+$ git clone (repo url)
+$ cd q-trader
+$ virtualenv -p python3 ./venv/
+```
 
-![GOOG_8_2017](https://github.com/edwardhdlu/q-trader/blob/master/images/GOOG_8_2017.png)
-Google, Inc, August 2017. Profit of $19.37.
+Then activate the virtual environment and install the required packages:
+
+```
+$ source venv/bin/activate
+...
+(venv) $ pip install -r requirements.txt
+```
+
+## Getting (or generating) a dataset
+
+Afterwards it's required to get a dataset with the following columns:
+
+* time: an integer counter, whether it's a timestamp or an incremental value.
+* open: First price of the trade during the period.
+* close: price of the last trade during the period.
+* high: maximum trade price during the period.
+* low: minimum trade price during the period.
+* volume: overall volume of the trades performed during that period
+
+### Generate random dataset
+
+If you can't find one, you can generate a simple one by either downloading the sample datasets from the original repository, or by generating a random walk through the python console:
+
+```
+(venv) $ python random-walk.py
+```
+
+It will generate the file ./data/random-walk-1000.csv, which includes 1000 rows of random walk close data into an OHCLV dataset.
+
+### Getting a dataset from an external service
+
+You can also download a training and test csv files from [Yahoo! Finance](https://ca.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC) into `data/`. Please take into account that after downloadeind the dataset
+
+
+### Running a first training
+
+Taking as a sample the random walk dataset, it's possible to train the model:
+
+```
+(venv) $ python train_dataframe_ta.py --stock=random-walk-1000 --window-size=50 --episodes=10 --model=baseline --batch-size=5
+```
+
+The allowed arguments for that release are:
+
+* stock: Dataset to be used.
+* episodes: How many training cycles will be run over the training dataset.
+* model: List of columns that will be taken into account to train the neural network model.
+* window-size: How many elements in the training dataset are used to learn its effects.
+* batch-size: How many actions are taken after every episode in order to _replay_ the actions and actually train the model.
+
 
 ## Running the Code
 
-To train the model, download a training and test csv files from [Yahoo! Finance](https://ca.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC) into `data/`
-```
-mkdir model
-python train ^GSPC 10 1000
-```
+To train the model, download a training and test csv files from [Yahoo! Finance](https://ca.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC) into `data/`. Please take into account that after downloading the file it's required to rename the columns that have the columns mentioned above, and that the Date column should be converted into an integer value.
 
 Then when training finishes (minimum 200 episodes for results):
 ```
 python evaluate.py ^GSPC_2011 model_ep1000
 ```
+
+## Testing / Evaluating the model
+
+The cross-validation of the model requires to have a CSV file having the same name as the stock but with the "-cv" suffix.  For a quick test, you can simply clone the same random-walk-1000 value to another file:
+
+```
+(venv) $ cp data/random-walk-1000.csv data/random-walk-1000-cv.csv
+```
+
+Now you can run the cross-validation over the generated model:
+
+```
+(venv) $ python  cv_dataframe_ta.py --stock=random-walk-1000 --window-size=50 --episodes=1 --model=baseline --batch-size=5
+```
+
+In this case, the argument `episodes` tells which is the version of the model (at which episode was trained) that will be used for the cross-validation. This allows to check the performance in each step.
+
+## Output data
+
+The training stage stores each episode outcome in a different file, into the output folder. It generates a subfolder named after the name of the stock and their arguments. For instance the previous command:
+
+```
+(venv) $ python train_dataframe_ta.py --stock=random-walk-1000 --window-size=50 --episodes=10 --model=baseline --batch-size=5
+```
+
+Will generate the file `output/models/baseline/model-w50-ep-1.model`, and it will also
+
+It also stores the outcome of each step and episode during the training at `output/transitions/baseline/transitions-random-walk-1000-50-e001.csv`, which may be used mainly for debugging purposes.
 
 ## References
 
