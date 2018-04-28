@@ -24,26 +24,19 @@ def get_cv_data(key, window_size=None, limit=None):
 def get_train_data(key, window_size=None, limit=None):
     """Return the vector containing stock data from a fixed file."""
     with open("data/" + key + ".csv", "r") as infile:
-        lines = pd.read_csv(
-            infile,
-            names=[
-                'close',
-                'high',
-                'low',
-                'volume',
-                'time'
-            ]
-        )
+        lines = pd.read_csv(infile)
+
 
     if limit is not None:
         lines = lines.tail(limit).reindex()
 
-    lines['sar'] = tl.SAR(
-        lines['high'].values,
-        lines['low'].values,
-        acceleration=0.025,
-        maximum=0.05
-    )
+    if 'high' in lines.columns and 'low' in lines.columns:
+        lines['sar'] = tl.SAR(
+            lines['high'].values,
+            lines['low'].values,
+            acceleration=0.025,
+            maximum=0.05
+        )
 
     lines['rsi14'] = tl.RSI(
         lines['close'].values,
