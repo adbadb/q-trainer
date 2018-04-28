@@ -52,7 +52,9 @@ It will generate the file ./data/random-walk-1000.csv, which includes 1000 rows 
 You can also download a training and test csv files from [Yahoo! Finance](https://ca.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC) into `data/`. Please take into account that after downloadeind the dataset
 
 
-### Running a first training
+## Running the code
+
+### Model training
 
 Taking as a sample the random walk dataset, it's possible to train the model:
 
@@ -69,16 +71,7 @@ The allowed arguments for that release are:
 * batch-size: How many actions are taken after every episode in order to _replay_ the actions and actually train the model.
 
 
-## Running the Code
-
-To train the model, download a training and test csv files from [Yahoo! Finance](https://ca.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC) into `data/`. Please take into account that after downloading the file it's required to rename the columns that have the columns mentioned above, and that the Date column should be converted into an integer value.
-
-Then when training finishes (minimum 200 episodes for results):
-```
-python evaluate.py ^GSPC_2011 model_ep1000
-```
-
-## Testing / Evaluating the model
+### Testing / Evaluating the model
 
 The cross-validation of the model requires to have a CSV file having the same name as the stock but with the "-cv" suffix.  For a quick test, you can simply clone the same random-walk-1000 value to another file:
 
