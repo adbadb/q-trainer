@@ -1,6 +1,9 @@
 data/*
 output/*
 venv/*
+
+models_features.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
